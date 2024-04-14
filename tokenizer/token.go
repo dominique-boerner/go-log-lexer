@@ -7,7 +7,8 @@ const (
 	EOL                  // End of line
 	LOG_LEVEL
 	IP
-	TIMESTAMP
+	TIME
+	DATE
 	STRING
 	UNRECOGNIZED
 )
@@ -17,7 +18,8 @@ var tokens = []string{
 	EOL:          "EOL",
 	LOG_LEVEL:    "LOG_LEVEL",
 	IP:           "IP",
-	TIMESTAMP:    "TIMESTAMP",
+	TIME:         "TIME",
+	DATE:         "DATE",
 	STRING:       "STRING",
 	UNRECOGNIZED: "UNRECOGNIZED",
 }

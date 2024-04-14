@@ -25,10 +25,10 @@ type Lexer struct {
 }
 
 var (
-	timestampRegex   = regexp.MustCompile(`\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}`)
-	logLevelRegex    = regexp.MustCompile(`\[(INFO|WARNING|ERROR|DEBUG)\]`)
-	ipRegex          = regexp.MustCompile(`\d+\.\d+\.\d+\.\d+`)
-	singleWordRegexp = regexp.MustCompile(`[A-Za-z]+\s`)
+	dateRegex     = regexp.MustCompile(`\d{4}-\d{2}-\d{2}`)
+	timeRegex     = regexp.MustCompile(`\d{2}:\d{2}:\d{2}`)
+	logLevelRegex = regexp.MustCompile(`\[(INFO|WARNING|ERROR|DEBUG)\]`)
+	ipRegex       = regexp.MustCompile(`\d+\.\d+\.\d+\.\d+`)
 )
 
 func NewTokenizer(file *os.File) *Lexer {
@@ -61,33 +61,22 @@ func (l *Lexer) Tokenize() ([]Token, error) {
 		l.pos.Line++
 		l.pos.Column = 0
 
-		// Extract timestamp
-		if match := timestampRegex.FindString(l.line); match != "" {
-			tokens = append(tokens, Token{Type: TIMESTAMP, Content: match, Pos: l.pos})
-			l.line = strings.TrimPrefix(l.line, match)
-			l.pos.Column += len(match)
-		}
-
-		// Extract log level
-		if match := logLevelRegex.FindString(l.line); match != "" {
-			tokens = append(tokens, Token{Type: LOG_LEVEL, Content: match, Pos: l.pos})
-			l.line = strings.TrimPrefix(l.line, match)
-			l.pos.Column += len(match)
-		}
-
-		// Extract IP address if present
-		if match := ipRegex.FindString(l.line); match != "" {
-			tokens = append(tokens, Token{Type: IP, Content: match, Pos: l.pos})
-			l.line = strings.TrimPrefix(l.line, match)
-			l.pos.Column += len(match)
-		}
-
-		// Extract string if present
-		if match := singleWordRegexp.FindString(l.line); match != "" {
-			matchedString := strings.TrimSpace(match)
-			tokens = append(tokens, Token{Type: STRING, Content: matchedString, Pos: l.pos})
-			l.line = strings.TrimPrefix(l.line, matchedString)
-			l.pos.Column += len(matchedString)
+		// TODO: this operation is quite expensive, i should implement some kind of normalizing...
+		words := strings.Fields(l.line)
+		for _, word := range words {
+			// Check if the word matches any special patterns
+			if dateRegex.MatchString(word) {
+				tokens = append(tokens, Token{Type: TIME, Content: word, Pos: l.pos})
+			} else if timeRegex.MatchString(word) {
+				tokens = append(tokens, Token{Type: DATE, Content: word, Pos: l.pos})
+			} else if logLevelRegex.MatchString(word) {
+				tokens = append(tokens, Token{Type: LOG_LEVEL, Content: word, Pos: l.pos})
+			} else if ipRegex.MatchString(word) {
+				tokens = append(tokens, Token{Type: IP, Content: word, Pos: l.pos})
+			} else {
+				tokens = append(tokens, Token{Type: STRING, Content: word, Pos: l.pos})
+			}
+			l.pos.Column += len(word) + 1 // Increment column position by word length + space
 		}
 
 		logAfterLineTokenization(startTime, l, linesCount)
