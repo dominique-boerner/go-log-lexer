@@ -79,6 +79,8 @@ func (l *Lexer) Tokenize() ([]Token, error) {
 			l.pos.Column += len(word) + 1 // Increment column position by word length + space
 		}
 
+		tokens = append(tokens, Token{Type: EOL, Content: "", Pos: l.pos})
+
 		logAfterLineTokenization(startTime, l, linesCount)
 	}
 
