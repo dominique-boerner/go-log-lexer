@@ -29,16 +29,7 @@ This will give an output like this:
 
 ![output](./.github/output.png)
 
-To run another file, you can change the configuration in the `main.go`:
-
-```go
-[...]
-
-// Configuration
-var logFile = "examples/test-1000.log"
-
-[...]
-```
+To run another file, you can change the configuration in the `config.toml`.
 
 ## Usage
 

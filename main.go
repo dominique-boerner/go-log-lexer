@@ -1,23 +1,32 @@
 package main
 
 import (
+	"dominiqueboerner/go-log-lexer/config"
 	"dominiqueboerner/go-log-lexer/tokenizer"
 	"fmt"
+	"github.com/pelletier/go-toml/v2"
 	"os"
 )
 
-// Configuration
-var logFile = "examples/test-1000.log"
+const (
+	configFile = "config.toml"
+)
 
 func main() {
-	file, err := os.Open(logFile)
+	// Read config file
+	c, err := loadConfig()
+	if err != nil {
+		fmt.Printf("Error while reading configuration file")
+		c = config.Config{}
+	}
+
+	file, err := os.Open(c.Configuration.LogFile)
 	if err != nil {
 		panic(err)
 	}
 
+	fmt.Printf("Start tokenizing '%s'...\n\n", file.Name())
 	var fileTokenizer = tokenizer.NewTokenizer(file)
-
-	fmt.Printf("Start tokenizing '%s'...\n", file.Name())
 
 	tokens, err := fileTokenizer.Tokenize()
 	if err != nil {
@@ -46,4 +55,19 @@ func main() {
 	}
 
 	fmt.Println("Tokens have been written to output_file.txt")
+}
+
+func loadConfig() (config.Config, error) {
+	fileContent, err := os.ReadFile(configFile)
+	if err != nil {
+		return config.Config{}, err
+	}
+
+	var c config.Config
+	err = toml.Unmarshal(fileContent, &c)
+	if err != nil {
+		return config.Config{}, err
+	}
+
+	return c, nil
 }
